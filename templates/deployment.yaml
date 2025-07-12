@@ -1,0 +1,42 @@
+{{- if .Values.deployment.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-ntfy
+  labels:
+    {{- include "ntfy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ntfy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ntfy.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: ntfy
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: ["serve"]
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- if .Values.configMap.enabled }}
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/ntfy"
+          readOnly: true
+        {{- end }}
+      {{- if .Values.configMap.enabled }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ .Values.configMap.name }}
+      {{- end }}
+
+{{- end }}

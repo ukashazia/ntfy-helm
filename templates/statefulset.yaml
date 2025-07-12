@@ -1,0 +1,54 @@
+
+{{- if .Values.statefulSet.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-ntfy
+  labels:
+    {{- include "ntfy.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ .Release.Name }}-ntfy
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ntfy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ntfy.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: ntfy
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: †{{ .Values.image.pullPolicy }}
+        args: ["serve", "--cache-file", "/var/cache/ntfy/cache.db"]
+        ports:
+        - containerPort: 80
+          name: http
+        {{- if .Values.configMap.enabled }}
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/ntfy"
+          readOnly: true
+        {{- if .Values.statefulSet.cache.enabled }}
+        - name: cache
+          mountPath: "/var/cache/ntfy"
+        {{- end }}
+        {{- end }}
+      {{- if .Values.configMap.enabled }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ .Values.configMap.name }}
+      {{- end }}
+  {{- if .Values.statefulSet.cache.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: cache
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.statefulSet.cache.storage }}
+  {{- end }}
+{{- end }}
