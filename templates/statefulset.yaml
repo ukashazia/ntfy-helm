@@ -20,7 +20,7 @@ spec:
       containers:
       - name: ntfy
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: †{{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         args: ["serve", "--cache-file", "/var/cache/ntfy/cache.db"]
         ports:
         - containerPort: 80
@@ -52,3 +52,7 @@ spec:
           storage: {{ .Values.statefulSet.cache.storage }}
   {{- end }}
 {{- end }}
+
+
+
+
