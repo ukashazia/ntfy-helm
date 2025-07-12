@@ -17,6 +17,11 @@ service:
 configMap:
   enabled: true
   name: ntfy
+  data: |
+    listen-http: ":80"
+    cache-file: "/var/cache/ntfy/cache.db"
+    base-url: "https://example.com"
+    upstream-base-url: "https://ntfy.sh"
 
 statefulSet:
   enabled: false
